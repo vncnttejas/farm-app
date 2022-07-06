@@ -1,19 +1,21 @@
 {
   "name": "farm-app",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Farm service",
   "scripts": {
-
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js",
+    "test": "jest",
+    "lint": "eslint ."
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@fastify/autoload": "5.0.0",
     "@fastify/swagger": "7.4.1",
     "dotenv-safe": "8.2.0",
-    "fastify": "4.2.0"
+    "fastify": "4.2.0",
+    "mongoose": "6.4.2"
   },
   "devDependencies": {
     "nodemon": "2.0.18"
