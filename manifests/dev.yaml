@@ -1,0 +1,36 @@
+replicaCount: 2
+
+image:
+  repository: vncnttejas/farm-app
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 30303
+
+resources: {}
+limits:
+  cpu: 100m
+  memory: 64i
+requests:
+  cpu: 100m
+  memory: 64i
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+env:
+
+  open:
+    APP_PORT: 3000
+    NODE_HOST: 0.0.0.0
+    NODE_ENV: dev
+    LOG_LEVEL: info
+    LOG_NAME: farm-app
+
+  secret:
+    MONGO_URI: mongo-uri
