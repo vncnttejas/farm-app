@@ -1,2 +1,11 @@
 # NPM installs
 node_modules/
+
+# Jest Coverage
+coverage/
+
+# IDE files
+.vscode
+
+# env files
+.env
