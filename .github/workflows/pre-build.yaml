@@ -1,0 +1,51 @@
+name: Prebuild pipeline
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: commitlint
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: commitlint action
+        uses: wagoid/commitlint-github-action@v4
+
+  unit-test:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.14.2'
+          registry-url: https://registry.npmjs.org
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Dependencies
+        run: npm ci --no-optional
+
+      - name: Run tests
+        run: npm t
+        env:
+          NODE_HOST: ${{ secrets.NODE_HOST }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          APP_PORT: ${{ secrets.APP_PORT }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}

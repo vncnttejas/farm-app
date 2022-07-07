@@ -1,0 +1,52 @@
+name: Deploy
+on:
+  workflow_call:
+    inputs:
+      project: 
+        required: false
+        type: string 
+        default: farm-app
+      environment:
+        required: true
+        type: string
+      region: 
+        required: false
+        type: string
+        default: eu-west-1
+      k8_helm_value_file:
+        required: true
+        type: string
+      k8s_chart_path:
+        required: true
+        type: string
+jobs:
+  deploy:
+    name: Deployment to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v2
+
+      - id: sanitize-docker-tag
+        uses: condenast/actions/sanitize-text@v1
+        with:
+          text: ${{ github.ref_name }}-${{ github.sha }}
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy DB
+        uses: koslib/helm-eks-action@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
+        with:
+          command: |
+            helm install ${{ inputs.project }} --wait --set image.tag=${{ steps.sanitize-docker-tag.outputs.sanitized_text }} -f ${{ inputs.k8_helm_value_file }} ${{ inputs.k8s_chart_path }}

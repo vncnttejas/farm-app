@@ -1,0 +1,30 @@
+name: farm db
+on:
+  push:
+    branches:
+      - main
+jobs:
+  # Pre build
+  prebuild:
+    uses: ./.github/workflows/pre-build.yml
+    secrets: inherit
+    with:
+      environment: test
+
+  # Build
+  build:
+    uses: ./.github/workflows/build.yml
+    needs: prebuild
+    secrets: inherit
+    with:
+      environment: test
+
+  # Deploy to Test Env
+  deploy:
+    uses: ./.github/workflows/release.yml
+    needs: build
+    with:
+      environment: test
+      k8s_cluster: ${{ secrets.k8s_cluster }}
+      k8_helm_value_file: manifests/dev.yaml
+    secrets: inherit

@@ -1,0 +1,40 @@
+name: Build
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      project:
+        required: false
+        type: string
+        default: farm-app
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - id: sanitize-docker-tag
+        uses: condenast/actions/sanitize-text@v1
+        with:
+          text: ${{ github.ref_name }}-${{ github.sha }}
+
+      - name: dockerhub login
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: docker build and push
+        run: |
+          docker build -t ${{ inputs.project }} .
+          docker login -u="${{ secrets.DOCKERHUB_USER }}" -p="${{ secrets.DOCKERHUB_TOKEN }}"
+          docker tag ${{ inputs.project }} ${{ secrets.DOCKERHUB_USER }}/${{ inputs.project }}:${{ steps.sanitize-docker-tag.outputs.sanitized_text }}
+          docker push ${{ secrets.DOCKERHUB_USER }}/${{ inputs.project }}:${{ steps.sanitize-docker-tag.outputs.sanitized_text }}
